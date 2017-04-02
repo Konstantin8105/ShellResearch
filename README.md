@@ -1,7 +1,12 @@
 # Shell Research
 
 Calculation research of shell with/without stiffiners by Calculix
+
+
 TODO:
+
+  * Linear buckling of vertical plane plate for approve Timoshenko formula
+  * Linear buckling of vertical plane plate with vertical stiffiners for approve approximation formula
   * Calculation time for linear buckling on axial force & model precision
   * Shell without stiffiners: compare analytic formula and FE calculation
   * Compare result of fem calculation by depends finite element
