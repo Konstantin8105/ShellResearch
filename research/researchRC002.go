@@ -28,6 +28,7 @@ func RC002() {
 		fmt.Println("Wrong mesh : ", err)
 		return
 	}
+
 	// create fixed points
 	fixName := "fix"
 	model.AddNamedNodesOnLevel(0, fixName)
@@ -49,6 +50,7 @@ func RC002() {
 		FinishFreedom: 3,
 		Value:         0,
 	})
+
 	// create load points
 	loadName := "load"
 	model.AddNamedNodesOnLevel(height, loadName)
@@ -70,19 +72,23 @@ func RC002() {
 		Direction:   2,
 		LoadValue:   forcePerPoint,
 	})
+
 	// addshell property
 	model.ShellSections = append(model.ShellSections, inp.ShellSection{
 		ElementName: shellGenerator.ShellName,
 		Thickness:   thk,
 	})
+
 	// create linear buckling
 	model.Step.AmountBucklingShapes = 5
+
 	// save file
 	err = model.Save(modelFileName)
 	if err != nil {
 		fmt.Println("Wrong saving : ", err)
 		return
 	}
+
 	// calculate
 	calculate
 	// get result of buckling factor
