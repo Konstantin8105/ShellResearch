@@ -27,7 +27,7 @@ func RC002() {
 	force := -1.0
 	thk := 0.005
 
-	n := 40
+	n := 10
 
 	calcTime := make(plotter.XYs, n)
 
@@ -36,9 +36,11 @@ func RC002() {
 		panic(err)
 	}
 
-	p.Title.Text = "Research : Time creating INP model file & Precision(Distance between points)"
-	p.X.Label.Text = "Size of FE, meter"
-	p.Y.Label.Text = "Calculation time,sec"
+	p.Title.Text = "Research : Buckling force depends of finite element size"
+	p.X.Label.Text = "Iteration of size"
+	p.Y.Label.Text = "Force, N"
+
+	var inpModels []string
 
 	for iteration := 0; iteration < n; iteration++ {
 		model, err := ShellModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk)
@@ -46,32 +48,24 @@ func RC002() {
 			fmt.Println("Cannot mesh")
 			return
 		}
-		var client clientCalculix.ClientCalculix
-		client.Manager = *clientCalculix.NewServerManager()
-		dats, err := client.CalculateForBuckle([]string{model})
-		for _, dat := range dats {
-			fmt.Println(dat)
-		}
 
-		bucklingFactors := dats[0]
+		inpModels = append(inpModels, model)
 
-		// calculate by Timoshenko formula
-		timoshenkoStress := 0.605 * 2.e11 * thk / (diameter / 2.0)
-		timoshenkoForce := timoshenkoStress * math.Pi * diameter * thk
-		//stress2 := 750. * math.Pow(math.Pi, 2.) * 2e11 / (12. * (1. - 0.3*0.3)) * math.Pow(thk/height, 2.)
-		//force2 := stress2 * math.Pi * diameter * thk
-		// compare the result
+		pointsOnLevel += 5
+		pointsOnHeight += 5
+	}
 
-		size := math.Pi * diameter * height / float64(pointsOnLevel) / float64(pointsOnHeight)
-		fmt.Printf("%v\t%.4v\t%.4v\t%.4v\t%.4v\n", size, thk, diameter, force*bucklingFactors, timoshenkoForce)
+	var client clientCalculix.ClientCalculix
+	client.Manager = *clientCalculix.NewServerManager()
+	factor, err := client.CalculateForBuckle(inpModels)
+	if err != nil {
+		fmt.Println("Error : ", err)
+		return
+	}
 
-		calcTime[iteration].X = float64(iteration) // float64(pointsOnHeight) //size
-		calcTime[iteration].Y = math.Abs(force * bucklingFactors)
-
-		pointsOnLevel += 5  //int(float64(pointsOnLevel) * 1.05)
-		pointsOnHeight += 5 //int(float64(pointsOnHeight) * 1.1)
-		//diameter = diameter * 1.1
-
+	for i := range inpModels {
+		calcTime[i].X = float64(i)
+		calcTime[i].Y = math.Abs(force * factor[i])
 	}
 
 	err = plotutil.AddLinePoints(p,
