@@ -21,24 +21,31 @@ func RC002() {
 	createResearchDir(researchName)
 
 	diameter := 3.
-	height := 1.
+	height := 2.
 	pointsOnLevel := 5
 	pointsOnHeight := 5
 	force := -1.0
 	thk := 0.005
 
-	n := 20
+	n := 10
 
 	calcTime := make(plotter.XYs, n)
-
 	p, err := plot.New()
 	if err != nil {
 		panic(err)
 	}
-
 	p.Title.Text = "Research : Buckling force depends of finite element size"
 	p.X.Label.Text = "Iteration of size"
 	p.Y.Label.Text = "Force, N"
+
+	calcError := make(plotter.XYs, n)
+	p2, err := plot.New()
+	if err != nil {
+		panic(err)
+	}
+	p2.Title.Text = "Research : Error depends of finite element size"
+	p2.X.Label.Text = "Iteration of size"
+	p2.Y.Label.Text = "Error, %"
 
 	var inpModels []string
 
@@ -53,7 +60,7 @@ func RC002() {
 
 		inpModels = append(inpModels, model)
 
-		pointsOnLevel += 5
+		pointsOnLevel += 2
 		pointsOnHeight += 5
 	}
 
@@ -68,6 +75,12 @@ func RC002() {
 	for i := range inpModels {
 		calcTime[i].X = float64(i)
 		calcTime[i].Y = math.Abs(force * factor[i])
+		calcError[i].X = float64(i)
+		f := force * factor[i]
+		ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
+		e := (math.Abs(f) - math.Abs(ft)) / math.Abs(ft) * 100.
+		calcError[i].Y = e
+		fmt.Printf("f = %2.3E ft = %2.3E error = %+2.2f %v \n", f, ft, e, "%")
 	}
 
 	err = plotutil.AddLinePoints(p,
@@ -76,8 +89,18 @@ func RC002() {
 	if err != nil {
 		panic(err)
 	}
+
+	err = plotutil.AddLinePoints(p2,
+		fmt.Sprintf("Iteration"), calcError,
+	)
+	if err != nil {
+		panic(err)
+	}
 	// Save the plot to a PNG file.
 	if err := p.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+".png")); err != nil {
+		panic(err)
+	}
+	if err := p2.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+"_error.png")); err != nil {
 		panic(err)
 	}
 }
