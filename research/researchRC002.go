@@ -43,6 +43,8 @@ func RC002() {
 	var inpModels []string
 
 	for iteration := 0; iteration < n; iteration++ {
+		fmt.Println("Prepare model : ", iteration)
+
 		model, err := ShellModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk)
 		if err != nil {
 			fmt.Println("Cannot mesh")
