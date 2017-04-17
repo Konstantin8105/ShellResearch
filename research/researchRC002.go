@@ -3,6 +3,7 @@ package research
 import (
 	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 
 	"github.com/Konstantin8105/CalculixRPCclient/clientCalculix"
@@ -72,15 +73,39 @@ func RC002() {
 		return
 	}
 
+	// create text file
+	file := string(researchFolder + string(filepath.Separator) + researchName + string(filepath.Separator) + researchName + ".txt")
+	// check file is exist
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		// create file
+		newFile, err := os.Create(file)
+		if err != nil {
+			return
+		}
+		err = newFile.Close()
+		if err != nil {
+			return
+		}
+	}
+	// open file
+	f, err := os.OpenFile(file, os.O_WRONLY, 0777)
+	if err != nil {
+		return
+	}
 	for i := range inpModels {
 		calcTime[i].X = float64(i)
 		calcTime[i].Y = math.Abs(force * factor[i])
 		calcError[i].X = float64(i)
-		f := force * factor[i]
+		f0 := force * factor[i]
 		ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
-		e := (math.Abs(f) - math.Abs(ft)) / math.Abs(ft) * 100.
+		e := (math.Abs(f0) - math.Abs(ft)) / math.Abs(ft) * 100.
 		calcError[i].Y = e
-		fmt.Printf("f = %2.3E ft = %2.3E error = %+2.2f %v \n", f, ft, e, "%")
+		fmt.Fprintf(f, "f = %2.3E ft = %2.3E error = %+02.2f %v \n", f0, ft, e, "%")
+	}
+
+	err = f.Close()
+	if err != nil {
+		return
 	}
 
 	err = plotutil.AddLinePoints(p,
