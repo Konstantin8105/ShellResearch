@@ -23,12 +23,12 @@ func RC002() {
 
 	diameter := 3.
 	height := 2.
-	pointsOnLevel := 5
-	pointsOnHeight := 5
+	pointsOnLevel := 8
+	pointsOnHeight := 8
 	force := -1.0
 	thk := 0.005
 
-	n := 80
+	n := 10
 
 	calcTime := make(plotter.XYs, n)
 	p, err := plot.New()
