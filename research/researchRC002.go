@@ -23,12 +23,12 @@ func RC002() {
 
 	diameter := 3.
 	height := 2.
-	pointsOnLevel := 8
-	pointsOnHeight := 8
+	pointsOnLevel := 20
+	pointsOnHeight := 20
 	force := -1.0
 	thk := 0.005
 
-	n := 10
+	n := 30
 
 	calcTime := make(plotter.XYs, n)
 	p, err := plot.New()
@@ -61,15 +61,15 @@ func RC002() {
 
 		inpModels = append(inpModels, model)
 
-		pointsOnLevel += 2
-		pointsOnHeight += 5
+		pointsOnLevel += 10
+		pointsOnHeight += 10
 	}
 
 	var client clientCalculix.ClientCalculix
 	client.Manager = *clientCalculix.NewServerManager()
 	factor, err := client.CalculateForBuckle(inpModels)
 	if err != nil {
-		fmt.Println("Error : ", err)
+		fmt.Printf("Error : %v.\n Factors = %v\n", err, factor)
 		return
 	}
 
@@ -143,6 +143,7 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 		return
 	}
 
+	fmt.Println("Add other model property")
 	// create fixed points
 	fixName := "fix"
 	model.AddNamedNodesOnLevel(0, fixName)
@@ -196,10 +197,14 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 	// create linear buckling
 	model.Step.AmountBucklingShapes = 1
 
+	fmt.Println("End of adding property")
+
 	lines := model.SaveINPtoLines()
 	var buffer string
 	for _, line := range lines {
 		buffer += line + "\n"
 	}
+
+	fmt.Println("Return inp like string")
 	return buffer, nil
 }
