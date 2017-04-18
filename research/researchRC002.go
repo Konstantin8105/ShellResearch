@@ -3,6 +3,7 @@ package research
 import (
 	"fmt"
 	"math"
+	"os"
 	"path/filepath"
 
 	"github.com/Konstantin8105/CalculixRPCclient/clientCalculix"
@@ -21,7 +22,7 @@ func RC002() {
 	createResearchDir(researchName)
 
 	diameter := 3.
-	height := 1.
+	height := 2.
 	pointsOnLevel := 5
 	pointsOnHeight := 5
 	force := -1.0
@@ -30,15 +31,22 @@ func RC002() {
 	n := 80
 
 	calcTime := make(plotter.XYs, n)
-
 	p, err := plot.New()
 	if err != nil {
 		panic(err)
 	}
-
 	p.Title.Text = "Research : Buckling force depends of finite element size"
 	p.X.Label.Text = "Iteration of size"
 	p.Y.Label.Text = "Force, N"
+
+	calcError := make(plotter.XYs, n)
+	p2, err := plot.New()
+	if err != nil {
+		panic(err)
+	}
+	p2.Title.Text = "Research : Error depends of finite element size"
+	p2.X.Label.Text = "Iteration of size"
+	p2.Y.Label.Text = "Error, %"
 
 	var inpModels []string
 
@@ -53,7 +61,7 @@ func RC002() {
 
 		inpModels = append(inpModels, model)
 
-		pointsOnLevel += 5
+		pointsOnLevel += 2
 		pointsOnHeight += 5
 	}
 
@@ -65,9 +73,39 @@ func RC002() {
 		return
 	}
 
+	// create text file
+	file := string(researchFolder + string(filepath.Separator) + researchName + string(filepath.Separator) + researchName + ".txt")
+	// check file is exist
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		// create file
+		newFile, err := os.Create(file)
+		if err != nil {
+			return
+		}
+		err = newFile.Close()
+		if err != nil {
+			return
+		}
+	}
+	// open file
+	f, err := os.OpenFile(file, os.O_WRONLY, 0777)
+	if err != nil {
+		return
+	}
 	for i := range inpModels {
 		calcTime[i].X = float64(i)
 		calcTime[i].Y = math.Abs(force * factor[i])
+		calcError[i].X = float64(i)
+		f0 := force * factor[i]
+		ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
+		e := (math.Abs(f0) - math.Abs(ft)) / math.Abs(ft) * 100.
+		calcError[i].Y = e
+		fmt.Fprintf(f, "f = %2.3E ft = %2.3E error = %+02.2f %v \n", f0, ft, e, "%")
+	}
+
+	err = f.Close()
+	if err != nil {
+		return
 	}
 
 	err = plotutil.AddLinePoints(p,
@@ -76,8 +114,18 @@ func RC002() {
 	if err != nil {
 		panic(err)
 	}
+
+	err = plotutil.AddLinePoints(p2,
+		fmt.Sprintf("Iteration"), calcError,
+	)
+	if err != nil {
+		panic(err)
+	}
 	// Save the plot to a PNG file.
 	if err := p.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+".png")); err != nil {
+		panic(err)
+	}
+	if err := p2.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+"_error.png")); err != nil {
 		panic(err)
 	}
 }
