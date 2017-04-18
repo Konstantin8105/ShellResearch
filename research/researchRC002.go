@@ -5,6 +5,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/Konstantin8105/CalculixRPCclient/clientCalculix"
 	"github.com/Konstantin8105/Convert-INP-to-STD-format/inp"
@@ -23,12 +24,12 @@ func RC002() {
 
 	diameter := 3.
 	height := 2.
-	pointsOnLevel := 20
-	pointsOnHeight := 20
+	pointsOnLevel := 200
+	pointsOnHeight := 200
 	force := -1.0
 	thk := 0.005
 
-	n := 30
+	n := 3
 
 	calcTime := make(plotter.XYs, n)
 	p, err := plot.New()
@@ -200,11 +201,11 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 	fmt.Println("End of adding property")
 
 	lines := model.SaveINPtoLines()
-	var buffer string
+	/*var buffer string
 	for _, line := range lines {
 		buffer += line + "\n"
-	}
+	}*/
 
 	fmt.Println("Return inp like string")
-	return buffer, nil
+	return /* buffer*/ strings.Join(lines, "\n"), nil
 }
