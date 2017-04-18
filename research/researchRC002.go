@@ -27,7 +27,7 @@ func RC002() {
 	force := -1.0
 	thk := 0.005
 
-	n := 10
+	n := 80
 
 	calcTime := make(plotter.XYs, n)
 
