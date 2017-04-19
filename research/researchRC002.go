@@ -17,19 +17,22 @@ import (
 )
 
 // RC002 - compare with Timoshenko formula
+// Goal :
+// * if more FE, then more precision
+// * if FE is many, then precision is lost
 func RC002() {
 
 	researchName := "RC002"
 	createResearchDir(researchName)
 
-	diameter := 3.
-	height := 2.
-	pointsOnLevel := 200
-	pointsOnHeight := 200
+	diameter := 5.8
+	height := 12.0
+	pointsOnLevel := 10
+	pointsOnHeight := 10
 	force := -1.0
 	thk := 0.005
 
-	n := 3
+	n := 50
 
 	calcTime := make(plotter.XYs, n)
 	p, err := plot.New()
@@ -62,8 +65,8 @@ func RC002() {
 
 		inpModels = append(inpModels, model)
 
-		pointsOnLevel += 10
-		pointsOnHeight += 10
+		pointsOnLevel += 4
+		pointsOnHeight += 8
 	}
 
 	var client clientCalculix.ClientCalculix
@@ -101,7 +104,7 @@ func RC002() {
 		ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
 		e := (math.Abs(f0) - math.Abs(ft)) / math.Abs(ft) * 100.
 		calcError[i].Y = e
-		fmt.Fprintf(f, "f = %2.3E ft = %2.3E error = %+02.2f %v \n", f0, ft, e, "%")
+		fmt.Fprintf(f, "f0 = %2.3E ft = %2.3E error = %+2.2f %v \n", f0, ft, e, "%")
 	}
 
 	err = f.Close()
