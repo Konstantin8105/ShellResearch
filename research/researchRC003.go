@@ -21,14 +21,14 @@ func RC003() {
 
 	diameter := 5.48
 	height := 13.5
-	startPointsOnLevel := 10
-	stepOnLevel := 15
-	startPointsOnHeight := 10
-	stepOnHeight := 15
+	startPointsOnLevel := 100
+	stepOnLevel := 50
+	startPointsOnHeight := 100
+	stepOnHeight := 50
 	force := -1.0
 	thk := 0.005
 
-	n := 60
+	n := 20
 
 	p, err := plot.New()
 	if err != nil {
@@ -76,12 +76,12 @@ func RC003() {
 			panic(err)
 		}
 		l.LineStyle.Width = vg.Points(1)
-		l.LineStyle.Color = color.RGBA{
+		l.LineStyle.Color = getColor(float64(i) / float64(n)) /* = color.RGBA{
 			R: 255,
 			G: uint8(255. * (1. - float64(i)/float64(n))),
 			B: 0,
 			A: 255,
-		}
+		}*/
 		// Add the plotters to the plot, with a legend
 		// entry for each
 		p.Add(l)
@@ -92,5 +92,34 @@ func RC003() {
 			panic(err)
 		}
 	}
+}
 
+// index from 0 to 1
+func getColor(index float64) color.RGBA {
+	colorShema := []color.RGBA{
+		color.RGBA{R: 255, G: 0, B: 0, A: 255},
+		color.RGBA{R: 255, G: 255, B: 0, A: 255},
+		color.RGBA{R: 255, G: 0, B: 255, A: 255},
+		color.RGBA{R: 0, G: 255, B: 255, A: 255},
+	}
+	i := int(index*float64(len(colorShema)-1) - 1e-5)
+	if i >= len(colorShema) {
+		i = len(colorShema) - 1
+	}
+	if i < 0 {
+		i = 0
+	}
+	index = index*float64(len(colorShema)) - float64(int(index*float64(len(colorShema))))
+	if index < 0. {
+		index = 1e5
+	}
+	if index > 1. {
+		index = 1. - 1e-5
+	}
+	return color.RGBA{
+		R: uint8(float64(colorShema[i].R) + float64(float64(colorShema[i+1].R-colorShema[i].R)*index)),
+		G: uint8(float64(colorShema[i].G) + float64(float64(colorShema[i+1].G-colorShema[i].G)*index)),
+		B: uint8(float64(colorShema[i].B) + float64(float64(colorShema[i+1].B-colorShema[i].B)*index)),
+		A: uint8(float64(colorShema[i].A) + float64(float64(colorShema[i+1].A-colorShema[i].A)*index)),
+	}
 }

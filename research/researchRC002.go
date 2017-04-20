@@ -147,7 +147,7 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 		return
 	}
 
-	fmt.Println("Add other model property")
+	//fmt.Println("Add other model property")
 	// create fixed points
 	fixName := "fix"
 	model.AddNamedNodesOnLevel(0, fixName)
@@ -201,7 +201,7 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 	// create linear buckling
 	model.Step.AmountBucklingShapes = 1
 
-	fmt.Println("End of adding property")
+	//fmt.Println("End of adding property")
 
 	lines := model.SaveINPtoLines()
 	/*var buffer string
@@ -209,6 +209,6 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 		buffer += line + "\n"
 	}*/
 
-	fmt.Println("Return inp like string")
+	//fmt.Println("Return inp like string")
 	return /* buffer*/ strings.Join(lines, "\n"), nil
 }
