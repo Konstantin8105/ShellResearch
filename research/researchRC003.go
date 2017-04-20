@@ -22,9 +22,9 @@ func RC003() {
 	diameter := 5.48
 	height := 13.5
 	startPointsOnLevel := 10
-	stepOnLevel := 4
+	stepOnLevel := 15
 	startPointsOnHeight := 10
-	stepOnHeight := 4
+	stepOnHeight := 15
 	force := -1.0
 	thk := 0.005
 
