@@ -28,7 +28,7 @@ func RC003() {
 	force := -1.0
 	thk := 0.005
 
-	n := 40
+	n := 60
 
 	p, err := plot.New()
 	if err != nil {
@@ -77,9 +77,10 @@ func RC003() {
 		}
 		l.LineStyle.Width = vg.Points(1)
 		l.LineStyle.Color = color.RGBA{
-			R: 255,
+			R: uint8(255. * (float64(i) / float64(n))),
 			G: uint8(255. * (1. - float64(i)/float64(n))),
 			B: 0,
+			A: 200,
 		}
 		// Add the plotters to the plot, with a legend
 		// entry for each
