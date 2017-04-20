@@ -25,14 +25,14 @@ func RC002() {
 	researchName := "RC002"
 	createResearchDir(researchName)
 
-	diameter := 5.8
-	height := 12.0
+	diameter := 5.48
+	height := 13.5
 	pointsOnLevel := 10
 	pointsOnHeight := 10
 	force := -1.0
 	thk := 0.005
 
-	n := 50
+	n := 40
 
 	calcTime := make(plotter.XYs, n)
 	p, err := plot.New()

@@ -5,5 +5,7 @@ import (
 )
 
 func main() {
+	//research.RC001()
 	research.RC002()
+	research.RC003()
 }

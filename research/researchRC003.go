@@ -2,12 +2,13 @@ package research
 
 import (
 	"fmt"
+	"image/color"
+	"math"
 	"path/filepath"
 
 	"github.com/Konstantin8105/CalculixRPCclient/clientCalculix"
 	"github.com/gonum/plot"
 	"github.com/gonum/plot/plotter"
-	"github.com/gonum/plot/plotutil"
 	"github.com/gonum/plot/vg"
 )
 
@@ -18,8 +19,8 @@ func RC003() {
 	researchName := "RC003"
 	createResearchDir(researchName)
 
-	diameter := 5.8
-	height := 12.0
+	diameter := 5.48
+	height := 13.5
 	startPointsOnLevel := 10
 	stepOnLevel := 4
 	startPointsOnHeight := 10
@@ -27,7 +28,7 @@ func RC003() {
 	force := -1.0
 	thk := 0.005
 
-	n := 20
+	n := 40
 
 	p, err := plot.New()
 	if err != nil {
@@ -63,16 +64,28 @@ func RC003() {
 			return
 		}
 
-		err = plotutil.AddLinePoints(p,
-			fmt.Sprintf("PointOnLevel:%v", pointsOnLevel), graph,
-		)
+		for j := 0; j < n; j++ {
+			pointsOnHeight := startPointsOnHeight + j*stepOnHeight
+			graph[j].X = float64(pointsOnHeight)
+			graph[j].Y = float64(math.Abs(force * factors[j]))
+		}
+
+		// Make a line plotter and set its style.
+		l, err := plotter.NewLine(graph)
 		if err != nil {
+			panic(err)
+		}
+		l.LineStyle.Width = vg.Points(1)
+		l.LineStyle.Color = color.RGBA{B: uint8(255. * float64(i) / float64(n)), A: uint8(255. * (1. - float64(i)/float64(n))), G: 40}
+		// Add the plotters to the plot, with a legend
+		// entry for each
+		p.Add(l)
+		p.Legend.Add(fmt.Sprintf("PointOnLevel:%v", pointsOnLevel), l)
+
+		// Save the plot to a PNG file.
+		if err := p.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+".Graph"+fmt.Sprintf("%v", i)+".png")); err != nil {
 			panic(err)
 		}
 	}
 
-	// Save the plot to a PNG file.
-	if err := p.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+".png")); err != nil {
-		panic(err)
-	}
 }
