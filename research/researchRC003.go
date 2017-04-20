@@ -76,7 +76,11 @@ func RC003() {
 			panic(err)
 		}
 		l.LineStyle.Width = vg.Points(1)
-		l.LineStyle.Color = color.RGBA{B: uint8(255. * float64(i) / float64(n)), A: uint8(255. * (1. - float64(i)/float64(n))), G: 40}
+		l.LineStyle.Color = color.RGBA{
+			R: 255,
+			G: uint8(255. * (1. - float64(i)/float64(n))),
+			B: 0,
+		}
 		// Add the plotters to the plot, with a legend
 		// entry for each
 		p.Add(l)
