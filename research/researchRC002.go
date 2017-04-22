@@ -69,8 +69,7 @@ func RC002() {
 		pointsOnHeight += 8
 	}
 
-	var client clientCalculix.ClientCalculix
-	client.Manager = *clientCalculix.NewServerManager()
+	client := clientCalculix.NewClient()
 	factor, err := client.CalculateForBuckle(inpModels)
 	if err != nil {
 		fmt.Printf("Error : %v.\n Factors = %v\n", err, factor)

@@ -56,8 +56,7 @@ func RC003() {
 			inpModels = append(inpModels, model)
 		}
 
-		var client clientCalculix.ClientCalculix
-		client.Manager = *clientCalculix.NewServerManager()
+		client := clientCalculix.NewClient()
 		factors, err := client.CalculateForBuckle(inpModels)
 		if err != nil {
 			fmt.Printf("Error : %v.\n Factors = %v\n", err, factors)
@@ -76,12 +75,8 @@ func RC003() {
 			panic(err)
 		}
 		l.LineStyle.Width = vg.Points(1)
-		l.LineStyle.Color = getColor(float64(i) / float64(n)) /* = color.RGBA{
-			R: 255,
-			G: uint8(255. * (1. - float64(i)/float64(n))),
-			B: 0,
-			A: 255,
-		}*/
+		l.LineStyle.Color = getColor(float64(i) / float64(n))
+
 		// Add the plotters to the plot, with a legend
 		// entry for each
 		p.Add(l)
