@@ -27,35 +27,19 @@ func RC002() {
 
 	diameter := 5.48
 	height := 13.5
-	pointsOnLevel := 10
-	pointsOnHeight := 10
 	force := -1.0
 	thk := 0.005
 
-	n := 40
+	maxAmountPoints := 30000
 
-	calcTime := make(plotter.XYs, n)
-	p, err := plot.New()
-	if err != nil {
-		panic(err)
-	}
-	p.Title.Text = "Research : Buckling force depends of finite element size"
-	p.X.Label.Text = "Iteration of size"
-	p.Y.Label.Text = "Force, N"
-
-	calcError := make(plotter.XYs, n)
-	p2, err := plot.New()
-	if err != nil {
-		panic(err)
-	}
-	p2.Title.Text = "Research : Error depends of finite element size"
-	p2.X.Label.Text = "Iteration of size"
-	p2.Y.Label.Text = "Error, %"
+	pointsOnLevel := 4
+	pointsOnHeight := 3
 
 	var inpModels []string
+	var amountPoints []int
 
-	for iteration := 0; iteration < n; iteration++ {
-		fmt.Println("Prepare model : ", iteration)
+	for {
+		fmt.Println("Prepare model : ", len(amountPoints))
 
 		model, err := ShellModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk)
 		if err != nil {
@@ -64,9 +48,14 @@ func RC002() {
 		}
 
 		inpModels = append(inpModels, model)
+		amountPoints = append(amountPoints, pointsOnLevel*pointsOnHeight)
 
-		pointsOnLevel += 4
+		pointsOnLevel += 8
 		pointsOnHeight += 8
+
+		if pointsOnLevel*pointsOnHeight >= maxAmountPoints {
+			break
+		}
 	}
 
 	client := clientCalculix.NewClient()
@@ -95,15 +84,35 @@ func RC002() {
 	if err != nil {
 		return
 	}
+
+	n := len(amountPoints)
+
+	calcTime := make(plotter.XYs, n)
+	p, err := plot.New()
+	if err != nil {
+		panic(err)
+	}
+	p.Title.Text = "Research : Buckling force depends of finite element size"
+	p.X.Label.Text = "Amount of points"
+	p.Y.Label.Text = "Force, N"
+
+	calcError := make(plotter.XYs, n)
+	p2, err := plot.New()
+	if err != nil {
+		panic(err)
+	}
+	p2.Title.Text = "Research : Error depends of finite element size"
+	p2.X.Label.Text = "Amount of points"
+	p2.Y.Label.Text = "Error, %"
 	for i := range inpModels {
-		calcTime[i].X = float64(i)
+		calcTime[i].X = float64(amountPoints[i])
 		calcTime[i].Y = math.Abs(force * factor[i])
-		calcError[i].X = float64(i)
+		calcError[i].X = float64(amountPoints[i])
 		f0 := force * factor[i]
 		ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
 		e := (math.Abs(f0) - math.Abs(ft)) / math.Abs(ft) * 100.
 		calcError[i].Y = e
-		fmt.Fprintf(f, "f0 = %2.3E ft = %2.3E error = %+2.2f %v \n", f0, ft, e, "%")
+		fmt.Fprintf(f, "amount = %8v\tf0 = %2.3E ft = %2.3E error = %+2.2f %v \n", amountPoints[i], f0, ft, e, "%")
 	}
 
 	err = f.Close()
@@ -112,14 +121,14 @@ func RC002() {
 	}
 
 	err = plotutil.AddLinePoints(p,
-		fmt.Sprintf("Iteration"), calcTime,
+		fmt.Sprintf("Graph"), calcTime,
 	)
 	if err != nil {
 		panic(err)
 	}
 
 	err = plotutil.AddLinePoints(p2,
-		fmt.Sprintf("Iteration"), calcError,
+		fmt.Sprintf("Graph"), calcError,
 	)
 	if err != nil {
 		panic(err)
@@ -146,7 +155,6 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 		return
 	}
 
-	//fmt.Println("Add other model property")
 	// create fixed points
 	fixName := "fix"
 	model.AddNamedNodesOnLevel(0, fixName)
@@ -200,14 +208,7 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 	// create linear buckling
 	model.Step.AmountBucklingShapes = 1
 
-	//fmt.Println("End of adding property")
-
 	lines := model.SaveINPtoLines()
-	/*var buffer string
-	for _, line := range lines {
-		buffer += line + "\n"
-	}*/
 
-	//fmt.Println("Return inp like string")
-	return /* buffer*/ strings.Join(lines, "\n"), nil
+	return strings.Join(lines, "\n"), nil
 }
