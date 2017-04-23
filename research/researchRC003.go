@@ -2,7 +2,6 @@ package research
 
 import (
 	"fmt"
-	"image/color"
 	"math"
 	"path/filepath"
 
@@ -47,7 +46,7 @@ func RC003() {
 
 		for j := 0; j < n; j++ {
 			pointsOnHeight := startPointsOnHeight + j*stepOnHeight
-			model, err := ShellModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk)
+			model, err := ShellModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk, "S4")
 			if err != nil {
 				fmt.Println("Cannot mesh")
 				return
@@ -75,7 +74,7 @@ func RC003() {
 			panic(err)
 		}
 		l.LineStyle.Width = vg.Points(1)
-		l.LineStyle.Color = getColor(float64(i) / float64(n))
+		l.LineStyle.Color = GetColor(float64(i) / float64(n))
 
 		// Add the plotters to the plot, with a legend
 		// entry for each
@@ -86,35 +85,5 @@ func RC003() {
 		if err := p.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+".Graph"+fmt.Sprintf("%v", i)+".png")); err != nil {
 			panic(err)
 		}
-	}
-}
-
-// index from 0 to 1
-func getColor(index float64) color.RGBA {
-	colorShema := []color.RGBA{
-		color.RGBA{R: 255, G: 0, B: 0, A: 255},
-		color.RGBA{R: 255, G: 255, B: 0, A: 255},
-		color.RGBA{R: 255, G: 0, B: 255, A: 255},
-		color.RGBA{R: 0, G: 255, B: 255, A: 255},
-	}
-	i := int(index*float64(len(colorShema)-1) - 1e-5)
-	if i >= len(colorShema) {
-		i = len(colorShema) - 1
-	}
-	if i < 0 {
-		i = 0
-	}
-	index = index*float64(len(colorShema)) - float64(int(index*float64(len(colorShema))))
-	if index < 0. {
-		index = 1e5
-	}
-	if index > 1. {
-		index = 1. - 1e-5
-	}
-	return color.RGBA{
-		R: uint8(float64(colorShema[i].R) + float64(float64(colorShema[i+1].R-colorShema[i].R)*index)),
-		G: uint8(float64(colorShema[i].G) + float64(float64(colorShema[i+1].G-colorShema[i].G)*index)),
-		B: uint8(float64(colorShema[i].B) + float64(float64(colorShema[i+1].B-colorShema[i].B)*index)),
-		A: uint8(float64(colorShema[i].A) + float64(float64(colorShema[i+1].A-colorShema[i].A)*index)),
 	}
 }

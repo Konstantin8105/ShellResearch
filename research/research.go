@@ -35,6 +35,7 @@ package research
 import (
 	"bufio"
 	"fmt"
+	"image/color"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -177,4 +178,34 @@ func parseBucklingFactor(line string) (mode int, factor float64, err error) {
 		return 0, 0, fmt.Errorf("Error: string parts - %v, error - %v, in line - %v", s, err, line)
 	}
 	return mode, factor, nil
+}
+
+// GetColor - index from 0 to 1
+func GetColor(index float64) color.RGBA {
+	colorShema := []color.RGBA{
+		color.RGBA{R: 255, G: 0, B: 255, A: 255},   // Magenta
+		color.RGBA{R: 0, G: 255, B: 0, A: 255},     // Green
+		color.RGBA{R: 0, G: 0, B: 255, A: 255},     // Blue
+		color.RGBA{R: 255, G: 0, B: 0, A: 255},     // Red
+		color.RGBA{R: 100, G: 100, B: 100, A: 255}, // Grey
+		color.RGBA{R: 255, G: 255, B: 0, A: 255},   // Yellow
+	}
+	if index <= 0. {
+		index = 1e-5
+	}
+	if index > 1. {
+		index = 1 - 1e-5
+	}
+	// color = 0...6
+	index = index*float64(len(colorShema)-1) - 1e-5
+	i := int(index)
+	index = index - float64(i)
+
+	result := color.RGBA{
+		R: uint8(float64(colorShema[i+1].R)*index + float64(colorShema[i].R)*(1.-index)),
+		G: uint8(float64(colorShema[i+1].G)*index + float64(colorShema[i].G)*(1.-index)),
+		B: uint8(float64(colorShema[i+1].B)*index + float64(colorShema[i].B)*(1.-index)),
+		A: uint8(float64(colorShema[i+1].A)*index + float64(colorShema[i].A)*(1.-index)),
+	}
+	return result
 }

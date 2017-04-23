@@ -12,7 +12,6 @@ import (
 	"github.com/Konstantin8105/Shell_generator/shellGenerator"
 	"github.com/gonum/plot"
 	"github.com/gonum/plot/plotter"
-	"github.com/gonum/plot/plotutil"
 	"github.com/gonum/plot/vg"
 )
 
@@ -30,62 +29,34 @@ func RC002() {
 	force := -1.0
 	thk := 0.005
 
-	maxAmountPoints := 20000
+	maxAmountPoints := 40000
 
-	pointsOnLevel := 4
-	pointsOnHeight := 3
-
-	var inpModels []string
-	var amountPoints []int
+	pointsOnLevel := []int{5}
+	pointsOnHeight := []int{5}
 
 	for {
-		fmt.Println("Prepare model : ", len(amountPoints))
+		lStep := 5
+		hStep := 5
+		l := pointsOnLevel[len(pointsOnLevel)-1] + lStep
+		h := pointsOnHeight[len(pointsOnHeight)-1] + hStep
+		pointsOnLevel = append(pointsOnLevel, l)
+		pointsOnHeight = append(pointsOnHeight, h)
 
-		model, err := ShellModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk)
-		if err != nil {
-			fmt.Printf("Cannot mesh : %v\n", err)
-			return
-		}
-
-		inpModels = append(inpModels, model)
-		amountPoints = append(amountPoints, pointsOnLevel*pointsOnHeight)
-
-		pointsOnLevel += 10
-		pointsOnHeight += 10
-
-		if pointsOnLevel*pointsOnHeight >= maxAmountPoints {
+		if (l+lStep)*(h+hStep) >= maxAmountPoints {
 			break
 		}
 	}
 
-	client := clientCalculix.NewClient()
-	factor, err := client.CalculateForBuckle(inpModels)
-	if err != nil {
-		fmt.Printf("Error : %v.\n Factors = %v\n", err, factor)
-		return
-	}
+	n := len(pointsOnLevel)
 
-	// create text file
-	file := string(researchFolder + string(filepath.Separator) + researchName + string(filepath.Separator) + researchName + ".txt")
-	// check file is exist
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		// create file
-		newFile, err := os.Create(file)
-		if err != nil {
-			return
-		}
-		err = newFile.Close()
-		if err != nil {
-			return
-		}
+	typeOfFEs := []string{
+		"S4",
+		"S4R",
+		"S8",
+		"S8R",
+		"S3",
+		"S6",
 	}
-	// open file
-	f, err := os.OpenFile(file, os.O_WRONLY, 0777)
-	if err != nil {
-		return
-	}
-
-	n := len(amountPoints)
 
 	calcTime := make(plotter.XYs, n)
 	p, err := plot.New()
@@ -104,46 +75,118 @@ func RC002() {
 	p2.Title.Text = "Research : Error depends of finite element size"
 	p2.X.Label.Text = "Amount of points"
 	p2.Y.Label.Text = "Error, %"
-	for i := range inpModels {
-		calcTime[i].X = float64(amountPoints[i])
-		calcTime[i].Y = math.Abs(force * factor[i])
-		calcError[i].X = float64(amountPoints[i])
-		f0 := force * factor[i]
-		ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
-		e := (math.Abs(f0) - math.Abs(ft)) / math.Abs(ft) * 100.
-		calcError[i].Y = e
-		fmt.Fprintf(f, "amount = %8v\tf0 = %2.3E ft = %2.3E error = %+2.2f %v \n", amountPoints[i], f0, ft, e, "%")
+
+	// create text file
+	file := string(researchFolder + string(filepath.Separator) + researchName + string(filepath.Separator) + researchName + ".txt")
+	// check file is exist
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		// create file
+		newFile, err := os.Create(file)
+		if err != nil {
+			return
+		}
+		err = newFile.Close()
+		if err != nil {
+			return
+		}
 	}
 
-	err = f.Close()
+	// open file
+	f, err := os.OpenFile(file, os.O_WRONLY, 0777)
 	if err != nil {
 		return
 	}
 
-	err = plotutil.AddLinePoints(p,
-		fmt.Sprintf("Graph"), calcTime,
-	)
-	if err != nil {
-		panic(err)
-	}
+	for indexFE, fe := range typeOfFEs {
+		var inpModels []string
+		var amountPoints []int
 
-	err = plotutil.AddLinePoints(p2,
-		fmt.Sprintf("Graph"), calcError,
-	)
+		for i := 0; i < n; i++ {
+			fmt.Println("Prepare model : ", len(amountPoints))
+
+			model, err := ShellModel(height, diameter, pointsOnLevel[i], pointsOnHeight[i], force, thk, fe)
+			if err != nil {
+				fmt.Printf("Cannot mesh : %v\n", err)
+				return
+			}
+
+			inpModels = append(inpModels, model)
+			amountPoints = append(amountPoints, pointsOnLevel[i]*pointsOnHeight[i])
+		}
+
+		client := clientCalculix.NewClient()
+		factor, err := client.CalculateForBuckle(inpModels)
+		if err != nil {
+			fmt.Printf("Error : %v.\n Factors = %v\n", err, factor)
+			return
+		}
+
+		fmt.Fprintf(f, "Type of finite element : %v\n", fe)
+
+		for i := range inpModels {
+			calcTime[i].X = float64(amountPoints[i])
+			calcTime[i].Y = math.Abs(force * factor[i])
+			calcError[i].X = float64(amountPoints[i])
+			f0 := force * factor[i]
+			ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
+			// amount =    24025	f0 = -3.317E+06 ft = -1.901E+07 error = +0.83 %
+			var e float64
+			if (math.Abs(f0)) > math.Abs(ft) {
+				e = 1. - math.Abs(ft)/math.Abs(f0)
+			} else {
+				e = 1. - math.Abs(f0)/math.Abs(ft)
+			}
+			e = e * 100.
+			calcError[i].Y = e
+			fmt.Fprintf(f, "amount = %8v\tf0 = %2.3E ft = %2.3E error = %+2.2f %v \n", amountPoints[i], f0, ft, e, "%")
+		}
+
+		{
+			// Make a line plotter and set its style.
+			l, err := plotter.NewLine(calcTime)
+			if err != nil {
+				panic(err)
+			}
+			l.LineStyle.Width = vg.Points(1)
+			l.LineStyle.Color = GetColor(float64(indexFE) / float64(len(typeOfFEs)))
+
+			// Add the plotters to the plot, with a legend
+			// entry for each
+			p.Add(l)
+			p.Legend.Add(fmt.Sprintf("Finite Element :%v", fe), l)
+		}
+		{
+			// Make a line plotter and set its style.
+			l, err := plotter.NewLine(calcError)
+			if err != nil {
+				panic(err)
+			}
+			l.LineStyle.Width = vg.Points(1)
+			l.LineStyle.Color = GetColor(float64(indexFE) / float64(len(typeOfFEs)))
+
+			// Add the plotters to the plot, with a legend
+			// entry for each
+			p2.Add(l)
+			p2.Legend.Add(fmt.Sprintf("Finite Element :%v", fe), l)
+		}
+
+		// Save the plot to a PNG file.
+		if err := p.Save(16*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+".png")); err != nil {
+			panic(err)
+		}
+		if err := p2.Save(16*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+"_error.png")); err != nil {
+			panic(err)
+		}
+	}
+	err = f.Close()
 	if err != nil {
-		panic(err)
-	}
-	// Save the plot to a PNG file.
-	if err := p.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+".png")); err != nil {
-		panic(err)
-	}
-	if err := p2.Save(8*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+"_error.png")); err != nil {
-		panic(err)
+		fmt.Println("Cannot close file")
+		return
 	}
 }
 
 // ShellModel - shell model
-func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight int, force, thk float64) (resultInp string, err error) {
+func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight int, force, thk float64, typeOfFE string) (resultInp string, err error) {
 	var model inp.Format
 
 	precision := 0.5
@@ -160,11 +203,11 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 	if err != nil {
 		return "", fmt.Errorf("Error : %v", err)
 	}
-	s8, err := inp.GetFiniteElementByName("S8R")
+	s, err := inp.GetFiniteElementByName(typeOfFE)
 	if err != nil {
 		return "", fmt.Errorf("Error : %v", err)
 	}
-	err = model.ChangeTypeFiniteElement(s4, s8)
+	err = model.ChangeTypeFiniteElement(s4, s)
 	if err != nil {
 		return "", fmt.Errorf("Error in change FE: %v", err)
 	}
