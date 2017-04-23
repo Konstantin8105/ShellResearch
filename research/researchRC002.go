@@ -30,7 +30,7 @@ func RC002() {
 	force := -1.0
 	thk := 0.005
 
-	maxAmountPoints := 30000
+	maxAmountPoints := 20000
 
 	pointsOnLevel := 4
 	pointsOnHeight := 3
@@ -43,15 +43,15 @@ func RC002() {
 
 		model, err := ShellModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk)
 		if err != nil {
-			fmt.Println("Cannot mesh")
+			fmt.Printf("Cannot mesh : %v\n", err)
 			return
 		}
 
 		inpModels = append(inpModels, model)
 		amountPoints = append(amountPoints, pointsOnLevel*pointsOnHeight)
 
-		pointsOnLevel += 8
-		pointsOnHeight += 8
+		pointsOnLevel += 10
+		pointsOnHeight += 10
 
 		if pointsOnLevel*pointsOnHeight >= maxAmountPoints {
 			break
@@ -155,9 +155,23 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 		return
 	}
 
+	// modify finite element
+	s4, err := inp.GetFiniteElementByName("S4")
+	if err != nil {
+		return "", fmt.Errorf("Error : %v", err)
+	}
+	s8, err := inp.GetFiniteElementByName("S8R")
+	if err != nil {
+		return "", fmt.Errorf("Error : %v", err)
+	}
+	err = model.ChangeTypeFiniteElement(s4, s8)
+	if err != nil {
+		return "", fmt.Errorf("Error in change FE: %v", err)
+	}
+
 	// create fixed points
 	fixName := "fix"
-	model.AddNamedNodesOnLevel(0, fixName)
+	_ = model.AddNamedNodesOnLevel(0, fixName)
 	model.Boundary = append(model.Boundary, inp.BoundaryProperty{
 		NodesByName:   fixName,
 		StartFreedom:  1,
@@ -179,7 +193,7 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 
 	// create load points
 	loadName := "load"
-	model.AddNamedNodesOnLevel(height, loadName)
+	size := model.AddNamedNodesOnLevel(height, loadName)
 	model.Boundary = append(model.Boundary, inp.BoundaryProperty{
 		NodesByName:   loadName,
 		StartFreedom:  1,
@@ -192,7 +206,7 @@ func ShellModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight 
 		FinishFreedom: 3,
 		Value:         0,
 	})
-	forcePerPoint := force / float64(pointsOnLevel)
+	forcePerPoint := force / float64(size)
 	model.Step.Loads = append(model.Step.Loads, inp.Load{
 		NodesByName: loadName,
 		Direction:   2,
