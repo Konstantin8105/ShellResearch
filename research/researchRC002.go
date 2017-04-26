@@ -128,7 +128,7 @@ func RC002() {
 			calcTime[i].Y = math.Abs(force * factor[i])
 			calcError[i].X = float64(amountPoints[i])
 			f0 := force * factor[i]
-			ft := -0.6052275 * 2. * math.Pi * math.Pow(0.005, 2.) * 2.0e11
+			ft := timoshenkoLoad(thk)
 			// amount =    24025	f0 = -3.317E+06 ft = -1.901E+07 error = +0.83 %
 			var e float64
 			if (math.Abs(f0)) > math.Abs(ft) {

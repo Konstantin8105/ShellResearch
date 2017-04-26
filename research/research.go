@@ -36,6 +36,7 @@ import (
 	"bufio"
 	"fmt"
 	"image/color"
+	"math"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -208,4 +209,8 @@ func GetColor(index float64) color.RGBA {
 		A: uint8(float64(colorShema[i+1].A)*index + float64(colorShema[i].A)*(1.-index)),
 	}
 	return result
+}
+
+func timoshenkoLoad(thk float64) float64 {
+	return -0.6052275 * 2. * math.Pi * math.Pow(thk, 2.) * 2.0e11
 }
