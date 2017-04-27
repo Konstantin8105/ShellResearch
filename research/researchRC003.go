@@ -130,7 +130,7 @@ func RC003() {
 		}
 
 		// Save the plot to a PNG file.
-		if err := p.Save(16*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+fmt.Sprintf("*%v", maxAmountPoints[maxI])+".png")); err != nil {
+		if err := p.Save(16*vg.Inch, 8*vg.Inch, string(researchFolder+string(filepath.Separator)+researchName+string(filepath.Separator)+researchName+fmt.Sprintf("-%v", maxAmountPoints[maxI])+".png")); err != nil {
 			panic(err)
 		}
 	}
