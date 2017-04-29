@@ -5,10 +5,19 @@ Calculation research of shell with/without stiffiners by Calculix
 DONE: 
 
 	RC002 - Linear buckling for approve Timoshenko formula. Different finite element, precision
+    RC003 - Linear buckling with different ratio(height/width) of finite elements 
+	RC004 - Linear buckling for compare regular and unregular mesh
 
 TODO:
+
+  * Imperfections:
+
+	Linear buckling mode-shaped imperfection (LBMI)
+	Single perturbation load imperfection (SPLI)
+	Geometrical dimple imperfection (GDI)
+	Axisymmetric imperfections (ASI)
+	Mid-surface imperfections (MSI)
  
-  * Linear buckling with different ratio(height/width) of finite elements 
   * Linear buckling of vertical plane plate with vertical stiffiners for approve approximation formula
   * Linear buckling with different amount vertical and horizontal stiffiners on axial force
   * Non-linear buckling with different amount vertical and horizontal stiffiners on axial force
