@@ -8,31 +8,29 @@ import (
 	"github.com/Konstantin8105/Shell_generator/shellGenerator"
 )
 
-// ShellModel - shell model
-func regularPerfectModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight int, force, thk float64, typeOfFE string) (resultInp string, err error) {
-	var model inp.Format
-
+// RegularPerfectModel - shell model
+func RegularPerfectModel(height float64, diameter float64, pointsOnLevel, pointsOnHeight int, force, thk float64, typeOfFE string) (model inp.Format, err error) {
 	precision := 0.5
 
 	// create cylinder model
 	model, err = (shellGenerator.Shell{Height: height, Diameter: diameter, Precision: precision}).GenerateMesh(pointsOnLevel, pointsOnHeight)
 	if err != nil {
 		fmt.Println("Wrong mesh : ", err)
-		return
+		return model, err
 	}
 
 	// modify finite element
 	s4, err := inp.GetFiniteElementByName("S4")
 	if err != nil {
-		return "", fmt.Errorf("Error : %v", err)
+		return model, fmt.Errorf("Error : %v", err)
 	}
 	s, err := inp.GetFiniteElementByName(typeOfFE)
 	if err != nil {
-		return "", fmt.Errorf("Error : %v", err)
+		return model, fmt.Errorf("Error : %v", err)
 	}
 	err = model.ChangeTypeFiniteElement(s4, s)
 	if err != nil {
-		return "", fmt.Errorf("Error in change FE: %v", err)
+		return model, fmt.Errorf("Error in change FE: %v", err)
 	}
 
 	// create fixed points
@@ -88,6 +86,14 @@ func regularPerfectModel(height float64, diameter float64, pointsOnLevel, points
 	// create linear buckling
 	model.Step.AmountBucklingShapes = 1
 
+	return model, nil
+}
+
+func regularPerfectModelBody(height float64, diameter float64, pointsOnLevel, pointsOnHeight int, force, thk float64, typeOfFE string) (r string, err error) {
+	model, err := RegularPerfectModel(height, diameter, pointsOnLevel, pointsOnHeight, force, thk, typeOfFE)
+	if err != nil {
+		return "", err
+	}
 	lines := model.SaveINPtoLines()
 
 	return strings.Join(lines, "\n"), nil

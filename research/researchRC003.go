@@ -65,7 +65,7 @@ func RC003() {
 		for i, c := range cases {
 			fmt.Println("Prepare model : ", i)
 
-			model, err := regularPerfectModel(height, diameter, c.pointsOnLevel, c.pointsOnHeight, force, thk, "S4")
+			model, err := regularPerfectModelBody(height, diameter, c.pointsOnLevel, c.pointsOnHeight, force, thk, "S4")
 			if err != nil {
 				fmt.Printf("Cannot mesh : %v\n", err)
 				return

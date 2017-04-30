@@ -212,5 +212,5 @@ func GetColor(index float64) color.RGBA {
 }
 
 func timoshenkoLoad(thk float64) float64 {
-	return -0.6052275 * 2. * math.Pi * math.Pow(thk, 2.) * 2.0e11
+	return -0.6052275 * 2. * math.Pi * math.Pow(thk, 2.) * 2.10e11
 }

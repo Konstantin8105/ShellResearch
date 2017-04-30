@@ -99,7 +99,7 @@ func RC002() {
 		var amountPoints []int
 
 		for i := 0; i < n; i++ {
-			model, err := regularPerfectModel(height, diameter, pointsOnLevel[i], pointsOnHeight[i], force, thk, fe)
+			model, err := regularPerfectModelBody(height, diameter, pointsOnLevel[i], pointsOnHeight[i], force, thk, fe)
 			if err != nil {
 				fmt.Printf("Cannot mesh : %v\n", err)
 				return

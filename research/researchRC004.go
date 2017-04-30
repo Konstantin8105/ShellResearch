@@ -97,7 +97,7 @@ func RC004() {
 				var model string
 				var err error
 				if typeOfModel == 0 {
-					model, err = regularPerfectModel(height, diameter, pointsOnLevel[i], pointsOnHeight[i], force, thk, fe)
+					model, err = regularPerfectModelBody(height, diameter, pointsOnLevel[i], pointsOnHeight[i], force, thk, fe)
 				} else {
 					model, err = unregularPerfectModel(height, diameter, pointsOnLevel[i], pointsOnHeight[i], force, thk, fe)
 				}
